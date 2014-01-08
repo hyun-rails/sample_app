@@ -1,5 +1,6 @@
 class SessionsController < ApplicationController
-
+  #before_action :signed_in_user_filter, only: [:new, :create]
+  
   def new
   end
 
@@ -18,5 +19,14 @@ class SessionsController < ApplicationController
   	sign_out #This method is defined in /app/helpers/sessions_helper.rb
   	redirect_to root_url
   end	
+
+  # Signed in users have no reason to access the new and 
+  # create actions. Signed in users will be redirected to
+  # the root URL if they do try to hit those pages
+  def signed_in_user_filter
+    if signed_in?
+        redirect_to root_path, notice: "Already logged in"
+    end
+  end
 
 end

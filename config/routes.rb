@@ -1,6 +1,14 @@
 SampleApp::Application.routes.draw do
+  
+  # Resource routing allows declaration of common routes for a 
+  # given resourceful controller. Instead of declaring separate 
+  # routes for index, show, new, edit, create, update and destroy
+  # actions, a resourceful route declares them in a single line
+  # of code. 
   resources :users
   resources :sessions, only: [:new, :create, :destroy]
+  resources :microposts, only: [:create, :destroy]
+  
   root  'static_pages#home'
   match '/signup',  to: 'users#new',            via: 'get'
   match '/signin',  to: 'sessions#new',         via: 'get'

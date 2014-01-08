@@ -35,7 +35,7 @@ describe "AuthenticationPages" do
       it { should have_link('Profile',     href: user_path(user)) }
       it { should have_link('Sign out',    href: signout_path) }
       it { should_not have_link('Sign in', href: signin_path) }
-      it { should have_link('Settings',     href: edit_user_path(user))}
+      it { should have_link('Settings',    href: edit_user_path(user))}
 
       describe "followed by signout" do
         before { click_link "Sign out" }
@@ -45,13 +45,33 @@ describe "AuthenticationPages" do
   end
 
   
-  # Testing that the edit and update actions are protected from
-  # unsigned users. These tests verify that non-signed-in users
-  # attempting to access are sent to the signin page.
-
+  
+  # Tests behavior of signed and non-signed users
   describe "authorization" do
+    
+    # Signed-in users have no reason to access the new and
+    # create actions in the Users controller. Signed-in
+    # users will be redirected to the root URL if they do
+    # try to hit those pages.
+    describe "for signed-in users" do
+      let(:user) { FactoryGirl.create(:user) }
+      before { sign_in user }
+      
+      # I don't think these tests do what they're supposed to do
+      it { should_not have_title('Sign up')}
+      it { should_not have_title('Sign in')}
+    end
+
+    # Testing that the edit and update actions are protected from
+    # unsigned users. These tests verify that non-signed-in users
+    # attempting to access are sent to the signin page.
     describe "for non-signed-in users" do
       let(:user) { FactoryGirl.create(:user) }
+
+      # Linkes to "Profile" and "Settings" should not appear when
+      # a user isn't signed in
+      it { should_not have_link('Settings',  href: edit_user_path(user))}
+      it { should_not have_link('Profile',   href: user_path(user))}
 
       describe "in the Users controller" do
 
@@ -75,6 +95,21 @@ describe "AuthenticationPages" do
           specify { expect(response).to redirect_to(signin_path) }
         end
       end
+
+      # Access control tests for microposts
+      describe "in the Microposts controller" do
+
+        describe "submitting to the create action" do
+          before { post microposts_path } # "create" action
+          specify { expect(response).to redirect_to(signin_path) }
+        end
+
+        describe "submitting to the destroy action" do
+          before { delete micropost_path(FactoryGirl.create(:micropost)) } # "destroy" action"
+          specify { expect(response).to redirect_to(signin_path) }
+        end
+      end
+
       
       # Tests friendly forwarding. Friendly forwarding directs
       # non-logged-in users to their initially intended pages 
@@ -91,6 +126,23 @@ describe "AuthenticationPages" do
 
           it "should render the desired protected page" do
             expect(page).to have_title('Edit user')
+          end
+          
+          # Friendly forwarding should only forward to the given
+          # URL the first time. On subsequent signin attempts, the
+          # forwarding URL should revert to the default
+          describe "when signing in again" do
+            before do
+              delete signout_path
+              visit signin_path
+              fill_in "Email",    with: user.email
+              fill_in "Password", with: user.password
+              click_button "Sign in"
+            end
+
+            it "should render the default (profile) page" do
+              expect(page).to have_title(user.name)
+            end
           end
         end
       end

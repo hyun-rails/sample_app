@@ -1,0 +1,17 @@
+<!--
+  The form partial for creating microposts. 
+-->
+
+<%= form_for(@micropost) do |f| %>
+  <!-- 
+    object: f.object creates a variable called object
+    in the error_messages partial. This object is used
+    to construct a customized error message in 
+    _error_messages.html.erb
+  -->
+  <%= render 'shared/error_messages', object: f.object %>
+  <div class="field">
+    <%= f.text_area :content, placeholder: "Compose new micropost..." %>
+  </div>
+  <%= f.submit "Post", class: "btn btn-large btn-primary" %>
+<% end %>

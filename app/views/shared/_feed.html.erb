@@ -1,0 +1,15 @@
+<!--
+  The status feed partial
+-->
+
+<% if @feed_items.any? %>
+  <ol class="microposts">
+  	<!-- The status feed partial defers the feed 
+  	item rendering to a feed item partial using the code. 
+  	The :collection parameter with the feed items is passed, which
+  	causes render to use the given partial ('feed_item' in this case)
+  	to render each item in the collection -->
+    <%= render partial: 'shared/feed_item', collection: @feed_items %>
+  </ol>
+  <%= will_paginate @feed_items %>
+<% end %>

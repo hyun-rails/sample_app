@@ -1,0 +1,19 @@
+<!--
+  The partial for the user info sidebar.
+-->
+
+<%= link_to gravatar_for(current_user, size: 52), current_user %>
+<h1>
+  <%= current_user.name %>
+</h1>
+<span>
+  <%= link_to "view my profile", current_user %>
+</span>
+<span>
+  <!-- 
+    "pluralize" determine whether the label should be
+    "micropost" or "microposts" depending on the number of
+    microposts 
+  -->
+  <%= pluralize(current_user.microposts.count, "micropost") %>
+</span>

@@ -7,6 +7,11 @@ class User < ActiveRecord::Base
 					  uniqueness: {case_sensitive: false}
     validates :password, length: { minimum: 6 }
 	has_secure_password
+  # has_many implements the user/micropost association.
+  # The option :dependent: :destroy arranges for the dependent
+  # microposts (i.e., the ones belonging to the given user)
+  # to be destroyed when user itself is destroyed
+  has_many :microposts, dependent: :destroy 
 
     def User.new_remember_token
     	SecureRandom.urlsafe_base64
@@ -14,6 +19,15 @@ class User < ActiveRecord::Base
 
     def User.encrypt(token)
     	Digest::SHA1.hexdigest(token.to_s)
+    end
+
+    # Implementation for the micropost status feed
+    def feed
+      # This is preliminary. See "Following users" for the full implementation.
+      # The question mark ensures that id is properly escaped 
+      # before being included in the underlying SQL query, thereby
+      # avoiding SQL injection.
+      microposts
     end
 
     private

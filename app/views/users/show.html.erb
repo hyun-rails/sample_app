@@ -8,4 +8,29 @@
       </h1>
     </section>
   </aside>
+  <!-- Display microposts to the page -->
+  <div class="span8">
+  	<!-- Condition: only when user has at least one microposts-->
+    <% if @user.microposts.any? %> 
+      <!-- 
+        Notice hos "count" was called through the user association.
+        This prevents count method from pulling all the microposts
+        out of the database. 
+      -->
+      <h3>Microposts (<%= @user.microposts.count %>)</h3>
+      <ol class="microposts">
+      	<!--
+      	  "render" automatically renders each of the users in
+      	  the @microposts variable using the _micropost.html.erb partial. 
+        -->
+        <%= render @microposts %>
+      </ol>
+      <!-- 
+        Notice how @microposts variable was explictly 
+        pass to will_paginate. @microposts variable is
+        defined in the user show action. 
+      -->
+      <%= will_paginate @microposts %>
+    <% end %>
+  </div>
 </div>

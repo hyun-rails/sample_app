@@ -9,6 +9,7 @@ describe User do
 
   subject { @user }
 
+  # Test the presence of attributes
   it { should respond_to(:name) }
   it { should respond_to(:email) }
   it { should respond_to(:password_digest) }
@@ -17,6 +18,7 @@ describe User do
   it { should respond_to(:authenticate) }
   it { should respond_to(:remember_token) }
   it { should respond_to(:admin) }
+  it { should respond_to(:microposts) } 
   
   it { should be_valid }
   it { should_not be_admin }
@@ -124,6 +126,50 @@ describe User do
     end
 
     it { should be_admin }
+  end
+
+  # Testing the order of a user's microposts
+  describe "micropost associations" do
+
+    before { @user.save }
+    # let! forces the corresponding variable to come into existence
+    # immediately, not when it is referenced.
+    let!(:older_micropost) do 
+      # Using created_at is allowed only with Factory Girl. Active
+      # Record won't allow created_at to be set manually
+      FactoryGirl.create(:micropost, user: @user, created_at: 1.day.ago)
+    end
+    let!(:newer_micropost) do
+      FactoryGirl.create(:micropost, user: @user, created_at: 1.hour.ago)
+    end
+
+    # This test indicates that the post should be ordered newest first.
+    it "should have the right microposts in the right order" do
+      # @user.microposts.to_a method returns an array of microposts.
+      expect(@user.microposts.to_a).to eq [newer_micropost, older_micropost]
+    end
+
+    # Microposts should be destroyed when users are detroyed.
+    it "should destroy associated microposts" do
+      microposts = @user.microposts.to_a
+      @user.destroy
+      expect(microposts).not_to be_empty
+      microposts.each do |micropost|
+        expect(Micropost.where(id: micropost.id)).to be_empty
+      end
+    end
+
+    # Tests for the (proto-)status feed.
+    describe "status" do
+      let(:unfollowed_post) do
+        FactoryGirl.create(:micropost, user: FactoryGirl.create(:user))
+      end
+
+      its(:feed) { should include(newer_micropost) }
+      its(:feed) { should include(older_micropost) }
+      its(:feed) { should_not include(unfollowed_post) }
+    end
+
   end
 
 

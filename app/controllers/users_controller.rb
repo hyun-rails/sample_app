@@ -2,12 +2,15 @@ class UsersController < ApplicationController
 
   # before_action command arrange for a particular method to be 
   # called before the given actions
+  
   # Below two commands are called only before edit and update
   before_action :signed_in_user, only: [:index, :edit, :update, :destroy]
   before_action :correct_user,   only: [:edit, :update]
-  
   # A before filter restricting the destroy action to admins
   before_action :admin_user,     only: :destroy
+  # A before filter restricting signed in user from accessing
+  # new or create action
+  before_action :signed_in_user_filter, only: [:new, :create]
 
   # "index" action pulls the users out of the database, assigning
   # them to an @users instance variable for use in the view.
@@ -18,6 +21,9 @@ class UsersController < ApplicationController
 
   def show
   	@user = User.find(params[:id])
+    # The @microposts instance variable is used in 
+    # app/views/users/show.html.erb
+    @microposts = @user.microposts.paginate(page: params[:page])
   end
 
   def new
@@ -72,12 +78,6 @@ class UsersController < ApplicationController
 
     # Before filters
 
-    # correct_user is called before edit and update
-    def signed_in_user
-      store_location
-      redirect_to signin_url, notice: "Please sign in." unless signed_in?
-    end
-
     # correct_user is called before edit and update. Notice how
     # @user = User.find(params[:id]) defines the user variable by
     # finding the user with id
@@ -89,6 +89,15 @@ class UsersController < ApplicationController
 
     def admin_user
       redirect_to(root_url) unless current_user.admin?
+    end
+    
+    # Signed in users have no reason to access the new and 
+    # create actions. Signed in users will be redirected to
+    # the root URL if they do try to hit those pages
+    def signed_in_user_filter
+      if signed_in?
+        redirect_to root_path, notice: "Already logged in"
+      end
     end
                                                         
 end
